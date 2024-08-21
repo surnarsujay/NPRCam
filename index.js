@@ -61,7 +61,9 @@ const server = http.createServer((req, res) => {
         });
 
         parser.on('error', err => {
-            if (!err.message.includes('Unexpected close tag')) {
+            // Ignore specific XML parsing errors
+            if (!err.message.includes('Unexpected close tag') && 
+                !err.message.includes('Unquoted attribute value')) {
                 console.error('XML Parsing Error:', err);
             }
         });
