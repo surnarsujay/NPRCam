@@ -3,26 +3,10 @@ const sax = require('sax');
 const { Buffer } = require('buffer');
 const sharp = require('sharp');
 const Tesseract = require('tesseract.js');
-const sql = require('mssql');
 
 // Define the IP camera server address and port
-const SERVER_ADDRESS = "146.88.24.73";
+const SERVER_ADDRESS = "0.0.0.0";
 const SERVER_PORT = 3000;
-
-// MSSQL connection configuration
-const dbConfig = {
-    user: 'MplusCam',
-    password: 'pv973$8eO',
-    server: '146.88.24.73',
-    database: 'lissomMplusCam',
-    options: {
-        encrypt: true,
-        trustServerCertificate: true, // Temporary setting for diagnosis
-        cryptoCredentialsDetails: {
-            minVersion: 'TLSv1.2',
-        }
-    },
-};
 
 // Define the tags to capture
 const tagsToCapture = ['plateNumber', 'targetBase64Data'];
@@ -38,8 +22,6 @@ const server = http.createServer((req, res) => {
         let base64Data = '';
         let base64DataProcessed = false; // Flag to check if Base64 data has been processed
         let plateNumberLogged = false; // Flag to ensure only the first plateNumber is logged
-        let plateNumber = ''; // Variable to store plateNumber
-        let camNo = ''; // Variable to store Camera No
 
         // Register event handlers for parsing
         parser.on('opentag', node => {
@@ -61,10 +43,8 @@ const server = http.createServer((req, res) => {
                 } else if (tagName === 'plateNumber' && !plateNumberLogged) {
                     // Validate and log plateNumber
                     if (isValidPlateNumber(value)) {
-                        plateNumber = value; // Store the plate number
-                        console.log(`plateNumber: ${plateNumber}`);
+                        console.log(`plateNumber: ${value}`);
                     } else {
-                        plateNumber = "invalid";
                         console.log('Invalid plate');
                     }
                     plateNumberLogged = true; // Ensure only the first plateNumber is logged
@@ -110,11 +90,8 @@ const server = http.createServer((req, res) => {
                                     // Extract key-value pairs
                                     const extractedData = extractKeyValuePairs(text);
                                     if (extractedData['Camera No']) {
-                                        // Store Camera No
-                                        camNo = extractedData['Camera No'].slice(0, 7);
-
-                                        // Insert data into MSSQL database
-                                        insertIntoDatabase(plateNumber, camNo);
+                                        // Print only the first 7 characters of Camera No
+                                        console.log(`Camera No: ${extractedData['Camera No'].slice(0, 7)}`);
                                     }
                                 })
                                 .catch(err => {
@@ -138,25 +115,6 @@ const server = http.createServer((req, res) => {
         res.end('Method Not Allowed\n');
     }
 });
-
-// Function to insert data into the MSSQL database
-async function insertIntoDatabase(plateNumber, camNo) {
-    try {
-        let pool = await sql.connect(dbConfig);
-        
-        let result = await pool.request()
-            .input('PlateNumber', sql.VarChar, plateNumber)
-            .input('CamNo', sql.VarChar, camNo)
-            .input('Status', sql.Int, 1) // Default status value
-            .query('INSERT INTO MplusCam.NPRData (PlateNumber, CamNo, Status) VALUES (@PlateNumber, @CamNo, @Status)');
-
-        console.log('Data inserted successfully:', result);
-    } catch (err) {
-        console.error('Database insertion error:', err);
-    } finally {
-        sql.close(); // Close the connection after the query
-    }
-}
 
 // Function to extract key-value pairs from OSD text
 function extractKeyValuePairs(text) {
