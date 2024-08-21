@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config version="1.7" xmlns="http://www.ipc.com/ver10">
+<types>
+<smartType>
+<enum>MOTION</enum>
+<enum>SENSOR</enum>
+<enum>PERIMETER</enum>
+<enum>TRIPWIRE</enum>
+<enum>PEA</enum>
+<enum>AVD</enum>
+<enum>OSC</enum>
+<enum>CPC</enum>
+<enum>CDD</enum>
+<enum>IPD</enum>
+<enum>VFD</enum>
+<enum>VEHICE</enum>
+<enum>AOIENTRY</enum>
+<enum>AOILEAVE</enum>
+<enum>PASSLINECOUNT</enum>
+<enum>TRAFFIC</enum>
+</smartType>
+<subscribeOption>
+<enum>ALARM</enum>
+<enum>FEATURE_RESULT</enum>
+<enum>FEATURE_RULE</enum>
+</subscribeOption>
+</types>
+<smartType type="openAlramObj">VEHICE</smartType>
+<subscribeRelation type="subscribeOption">FEATURE_RESULT</subscribeRelation>
+<currentTime type="tint64">1724107937523874</currentTime>
+<relativeTime type="tint64">60022167496</relativeTime>
+<jpegItemCount type="tint32">2</jpegItemCount>
+<plateCount type="tint32">1</plateCount>
+<softwareVersion type="tint32">4097</softwareVersion>
+<softwareBuildDate type="tint32">4097</softwareBuildDate>
+<listInfo type="list" count="2">
+<item>
+<image type="tuint32">0</image>
+<vehiceId type="tuint32">0</vehiceId>
+<plateNumber type="string"><![CDATA[MH43PR2856]]></plateNumber>
+<plateCharCount type="tuint32">0</plateCharCount>
+<vehicleDirect type="vehicleDirectType">(null)</vehicleDirect>
+<PlateWidth type="tuint32">0</PlateWidth>
+<PlateHeight type="tuint32">0</PlateHeight>
+<SourceImageWidth type="tuint32">1920</SourceImageWidth>
+<SourceImageHeight type="tuint32">1080</SourceImageHeight>
+<leftTop>
+<x type="uint32">0</x>
+<y type="uint32">0</y>
+</leftTop>
+<rightTop>
+<x type="uint32">0</x>
+<y type="uint32">0</y>
+</rightTop>
+<leftBottom>
+<x type="uint32">0</x>
+<y type="uint32">0</y>
+</leftBottom>
+<rightBottom>
+<x type="uint32">0</x>
+<y type="uint32">0</y>
+</rightBottom>
+<PlateConfidence type="tuint32">0</PlateConfidence>
+<plateColor type="tuint32">0</plateColor>
+<plateColorRate type="tuint32">0</plateColorRate>
+<plateStyle type="tuint32">0</plateStyle>
+<vehiceColor type="tuint32">0</vehiceColor>
+<plateAngleH type="tuint32">0</plateAngleH>
+<plateAngleV type="tuint32">0</plateAngleV>
+<targetImageData>
+<dataType type="uint32">0</dataType>
+<width type="uint32">0</width>
+<height type="uint32">0</height>
+<!-- Length of encrypted vehicle data Base64 -->
+<targetBase64Length type="uint32">112434</targetBase64Length>
+<!-- Base64 Encryption of vehicle Data -->
+<targetBase64Data type="string"><![CDATA[/9j/4AAQSkZJRgABAQAAAQABkULSheKB0p3agD//Z]]></targetBase64Data>
+</targetImageData>
+</item>
+<item>
+<image type="tuint32">1</image>
+<vehiceId type="tuint32">19</vehiceId>
+<plateNumber type="string"><![CDATA[MH43PR2856]]></plateNumber>
+<plateCharCount type="tuint32">10</plateCharCount>
+<vehicleDirect type="vehicleDirectType">approach</vehicleDirect>
+<PlateWidth type="tuint32">384</PlateWidth>
+<PlateHeight type="tuint32">224</PlateHeight>
+<SourceImageWidth type="tuint32">1920</SourceImageWidth>
+<SourceImageHeight type="tuint32">1080</SourceImageHeight>
+<leftTop>
+<x type="uint32">400</x>
+<y type="uint32">210</y>
+</leftTop>
+<rightTop>
+<x type="uint32">800</x>
+<y type="uint32">210</y>
+</rightTop>
+<leftBottom>
+<x type="uint32">400</x>
+<y type="uint32">442</y>
+</leftBottom>
+<rightBottom>
+<x type="uint32">800</x>
+<y type="uint32">442</y>
+</rightBottom>
+<PlateConfidence type="tuint32">39</PlateConfidence>
+<plateColor type="tuint32">3</plateColor>
+<plateColorRate type="tuint32">0</plateColorRate>
+<plateStyle type="tuint32">0</plateStyle>
+<vehiceColor type="tuint32">0</vehiceColor>
+<plateAngleH type="tuint32">0</plateAngleH>
+<plateAngleV type="tuint32">0</plateAngleV>
+<targetImageData>
+<dataType type="uint32">0</dataType>
+<width type="uint32">384</width>
+<height type="uint32">224</height>
+<!-- Length of encrypted vehicle data Base64 -->
+<targetBase64Length type="uint32">22036</targetBase64Length>
+<!-- Base64 Encryption of vehicle Data -->
+<targetBase64Data type="string"><![CDATA[/9j/4AAQSkZlZHXklMV5TbTuaM/9k=]]></targetBase64Data>
+</targetImageData>
+</item>
+</listInfo>
+</config>
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<config version="1.7" xmlns="http://www.ipc.com/ver10">
+<types>
+<smartType>
+<enum>MOTION</enum>
+<enum>SENSOR</enum>
+<enum>PERIMETER</enum>
+<enum>TRIPWIRE</enum>
+<enum>PEA</enum>
+<enum>AVD</enum>
+<enum>OSC</enum>
+<enum>CPC</enum>
+<enum>CDD</enum>
+<enum>IPD</enum>
+<enum>VFD</enum>
+<enum>VEHICE</enum>
+<enum>AOIENTRY</enum>
+<enum>AOILEAVE</enum>
+<enum>PASSLINECOUNT</enum>
+<enum>TRAFFIC</enum>
+</smartType>
+<subscribeOption>
+<enum>ALARM</enum>
+<enum>FEATURE_RESULT</enum>
+<enum>FEATURE_RULE</enum>
+</subscribeOption>
+</config>
+
