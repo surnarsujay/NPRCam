@@ -5,7 +5,7 @@ const sharp = require('sharp');
 const Tesseract = require('tesseract.js');
 
 // Define the IP camera server address and port
-const SERVER_ADDRESS = "146.88.24.73";
+const SERVER_ADDRESS = "0.0.0.0";
 const SERVER_PORT = 3000;
 
 // Define the tags to capture
