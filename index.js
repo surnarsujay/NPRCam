@@ -1,4 +1,3 @@
-
 const http = require('http');
 const sax = require('sax');
 const { Buffer } = require('buffer');
@@ -8,7 +7,7 @@ const sql = require('mssql');
 
 // Define the IP camera server address and port
 const SERVER_ADDRESS = "146.88.24.73";
-const SERVER_PORT = 3000;
+const SERVER_PORT = 3065;
 
 // MSSQL connection configuration
 const dbConfig = {
