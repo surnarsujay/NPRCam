@@ -8,7 +8,7 @@ const sql = require('mssql');
 
 // Define the IP camera server address and port
 const SERVER_ADDRESS = process.env.SERVER_ADDRESS;
-const SERVER_PORT = process.env.SERVER_PORT;
+const SERVER_PORT = process.env.NPR_SERVER_PORT;
 
 // MSSQL connection configuration
 const dbConfig = {
