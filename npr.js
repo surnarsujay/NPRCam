@@ -53,9 +53,8 @@ const server = http.createServer((req, res) => {
             if (tagName === 'config') {
                 insideConfigTag = false;
                 // Insert data into MSSQL database
-                insertIntoDatabase(mac, sn, deviceName, plateNumber, sqlConfig);
+                logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, sqlConfig);
             } else if (insideConfigTag && tagsToCapture.includes(tagName)) {
-                console.log(`${tagName}: ${value}`);
                 switch (tagName) {
                     case 'mac':
                         mac = value;
@@ -67,10 +66,9 @@ const server = http.createServer((req, res) => {
                         deviceName = value;
                         break;
                     case 'plateNumber':
-                        // Skip the first occurrence of plateNumber and process only the second
                         plateNumberOccurrence += 1;
                         if (plateNumberOccurrence === 2) {
-                            plateNumber = parseInt(value);
+                            plateNumber = value.trim(); // Use the second occurrence
                         }
                         break;
                 }
@@ -101,6 +99,20 @@ const server = http.createServer((req, res) => {
     }
 });
 
+// Log values and then insert into the database
+async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
+    console.log('mac:', mac);
+    console.log('sn:', sn);
+    console.log('deviceName:', deviceName);
+    console.log('plateNumber:', plateNumber);
+
+    if (plateNumber && plateNumber !== '') {
+        await insertIntoDatabase(mac, sn, deviceName, plateNumber, config);
+    } else {
+        console.log('plateNumber is empty, skipping database insert.');
+    }
+}
+
 // Function to insert data into MSSQL database
 async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
     let pool;
@@ -122,7 +134,7 @@ async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
             .input('mac', sql.VarChar, mac)
             .input('sn', sql.VarChar, sn || null) // Provide null if sn is not available
             .input('deviceName', sql.VarChar, deviceName || null) // Provide null if deviceName is not available
-            .input('plateNumber', sql.Int, plateNumber || null) // Provide null if plateNumber is not available
+            .input('plateNumber', sql.VarChar, plateNumber || null) // Provide null if plateNumber is not available
             .query(query);
 
         console.log('Data inserted successfully');
