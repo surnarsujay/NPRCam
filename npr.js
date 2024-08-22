@@ -1,16 +1,13 @@
 const http = require('http');
 const sax = require('sax');
-const { Buffer } = require('buffer');
-const sharp = require('sharp');
-const Tesseract = require('tesseract.js');
 const sql = require('mssql');
 
 // Define the IP camera server address and port
-const SERVER_ADDRESS = "146.88.24.73";
+const SERVER_ADDRESS = "0.0.0.0";
 const SERVER_PORT = 3065;
 
-// MSSQL connection configuration
-const dbConfig = {
+// Define the database configuration
+const sqlConfig = {
     user: 'MplusCam',
     password: 'pv973$8eO',
     server: '146.88.24.73',
@@ -24,22 +21,30 @@ const dbConfig = {
     },
 };
 
+// Function to format the current system datetime for SQL Server
+function formatSystemDateTimeForSqlServer() {
+    const currentDate = new Date();
+    const formattedDateTime = currentDate.toISOString().replace('T', ' ').replace('Z', '');
+    return formattedDateTime;
+}
+
 // Define the tags to capture
-const tagsToCapture = ['plateNumber', 'targetBase64Data'];
+const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber'];
 
 // Create HTTP server
 const server = http.createServer((req, res) => {
+    // Handle POST requests
     if (req.method === 'POST') {
         let parser = sax.createStream(true, { trim: true });
 
+        // Flag to indicate if we're inside the <config> tag
         let insideConfigTag = false;
         let tag = ''; // Current tag name
         let value = ''; // Current tag value
-        let base64Data = '';
-        let base64DataProcessed = false; // Flag to check if Base64 data has been processed
-        let plateNumberLogged = false; // Flag to ensure only the first plateNumber is logged
-        let plateNumber = ''; // Variable to store plateNumber
-        let camNo = ''; // Variable to store Camera No
+
+        // Variables to store extracted values
+        let mac, sn, deviceName, plateNumber;
+    
 
         // Register event handlers for parsing
         parser.on('opentag', node => {
@@ -47,22 +52,30 @@ const server = http.createServer((req, res) => {
                 insideConfigTag = true;
             } else if (insideConfigTag && tagsToCapture.includes(node.name)) {
                 tag = node.name;
-                value = ''; // Reset value for new tag
+                value = '';
             }
         });
 
         parser.on('closetag', tagName => {
             if (tagName === 'config') {
                 insideConfigTag = false;
+                // Insert data into MSSQL database
+                insertIntoDatabase(mac, sn, deviceName, plateNumber, sqlConfig);
             } else if (insideConfigTag && tagsToCapture.includes(tagName)) {
-                if (tagName === 'targetBase64Data' && !base64DataProcessed) {
-                    base64Data = value; // Store Base64 data
-                    base64DataProcessed = true; // Set flag to true after processing first occurrence
-                } else if (tagName === 'plateNumber' && !plateNumberLogged) {
-                    // Log plateNumber as is
-                    plateNumber = value; // Store the plate number
-                    console.log(`plateNumber: ${plateNumber}`);
-                    plateNumberLogged = true; // Ensure only the first plateNumber is logged
+                console.log(`${tagName}: ${value}`);
+                switch (tagName) {
+                    case 'mac':
+                        mac = value;
+                        break;
+                    case 'sn':
+                        sn = value;
+                        break;
+                    case 'deviceName':
+                        deviceName = value;
+                        break;
+                    case 'plateNumber':
+                        plateNumber = parseInt(value);
+                        break;
                 }
             }
         });
@@ -75,99 +88,54 @@ const server = http.createServer((req, res) => {
             value += cdata; // Concatenate CDATA
         });
 
-        parser.on('error', err => {
-            // Ignore specific XML parsing errors
-            if (!err.message.includes('Unexpected close tag') && 
-                !err.message.includes('Unquoted attribute value')) {
-                console.error('XML Parsing Error:', err);
-            }
-        });
-
         req.pipe(parser);
 
-        req.on('end', () => {
-            console.log('Request ended.');
-
-            if (base64Data) {
-                try {
-                    // Decode Base64 data
-                    const imageBuffer = Buffer.from(base64Data, 'base64');
-
-                    // Process the image buffer with sharp
-                    sharp(imageBuffer)
-                        .grayscale() // Convert to grayscale
-                        .threshold(200) // Apply binary thresholding
-                        .toBuffer()
-                        .then(data => {
-                            // Perform OCR on the preprocessed image buffer
-                            Tesseract.recognize(data, 'eng')
-                                .then(({ data: { text } }) => {
-                                    // Extract key-value pairs
-                                    const extractedData = extractKeyValuePairs(text);
-                                    if (extractedData['Camera No']) {
-                                        // Store Camera No
-                                        camNo = extractedData['Camera No'].slice(0, 7);
-
-                                        // Insert data into MSSQL database
-                                        insertIntoDatabase(plateNumber, camNo);
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error('Error during OCR:', err);
-                                });
-                        })
-                        .catch(err => {
-                            console.error('Error processing image:', err);
-                        });
-                } catch (err) {
-                    console.error('Error processing Base64 data:', err);
-                }
-            }
-
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('Data processed\n');
+        parser.on('error', err => {
+            console.error('XML Parsing Error:', err);
         });
 
+        req.on('end', () => {
+            console.log("Finished processing data");
+        });
     } else {
-        res.writeHead(405, { 'Content-Type': 'text/plain' });
+        // Handle non-POST requests
+        res.writeHead(405, {'Content-Type': 'text/plain'});
         res.end('Method Not Allowed\n');
     }
 });
 
-// Function to insert data into the MSSQL database
-async function insertIntoDatabase(plateNumber, camNo) {
+// Function to insert data into MSSQL database
+async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
+    let pool;
     try {
-        let pool = await sql.connect(dbConfig);
-        
-        let result = await pool.request()
-            .input('PlateNumber', sql.VarChar, plateNumber)
-            .input('CamNo', sql.VarChar, camNo)
-            .input('Status', sql.Int, 1) // Default status value
-            .query('INSERT INTO MplusCam.NPRData (PlateNumber, CamNo, Status) VALUES (@PlateNumber, @CamNo, @Status)');
+        // Connect to the database
+        pool = await sql.connect(config);
 
-        console.log('Data inserted successfully:', result);
+        // Create a new request
+        const request = pool.request();
+
+        // Define the query to insert data into the table
+        const query = `
+        INSERT INTO MplusCam.CameraData (mac, currentTime, sn, deviceName, plateNumber)
+        VALUES (@mac, @currentTime, @sn, @deviceName, @plateNumber);
+        `;
+
+        // Execute the query
+        const result = await request
+            .input('mac', sql.VarChar, mac)
+            .input('currentTime', sql.DateTime, formatSystemDateTimeForSqlServer())
+            .input('sn', sql.VarChar, sn || null) // Provide null if sn is not available
+            .input('deviceName', sql.VarChar, deviceName || null) // Provide null if deviceName is not available
+            .input('plateNumber', sql.Int, plateNumber || null) // Provide null if plateNumber is not available
+            .query(query);
+
+        console.log('Data inserted successfully');
     } catch (err) {
-        console.error('Database insertion error:', err);
+        console.error('Error inserting data:', err);
     } finally {
-        sql.close(); // Close the connection after the query
+        // Close the connection
+        if (pool) await pool.close();
     }
-}
-
-// Function to extract key-value pairs from OSD text
-function extractKeyValuePairs(text) {
-    const keyValuePairs = {};
-
-    // Regular expression to match key-value pairs with potential new lines or extra spaces
-    const regex = /(Camera No|Device No|Capture Time|Car Plate)\s*:\s*([^\n]*)/g;
-    
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-        const key = match[1].trim(); // Extract the key
-        const value = match[2].trim(); // Extract the value
-        keyValuePairs[key] = value;   // Store in the object
-    }
-
-    return keyValuePairs;
 }
 
 // Start the server
