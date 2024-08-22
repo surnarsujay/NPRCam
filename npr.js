@@ -21,8 +21,6 @@ const sqlConfig = {
     },
 };
 
-
-
 // Define the tags to capture
 const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber'];
 
@@ -36,7 +34,7 @@ const server = http.createServer((req, res) => {
         let insideConfigTag = false;
         let tag = ''; // Current tag name
         let value = ''; // Current tag value
-        let firstPlateNumberEncountered = false; // Flag to track first occurrence of plateNumber
+        let plateNumberOccurrence = 0; // Counter for occurrences of plateNumber
 
         // Variables to store extracted values
         let mac, sn, deviceName, plateNumber;
@@ -69,10 +67,9 @@ const server = http.createServer((req, res) => {
                         deviceName = value;
                         break;
                     case 'plateNumber':
-                        // Skip the first occurrence of plateNumber
-                        if (!firstPlateNumberEncountered) {
-                            firstPlateNumberEncountered = true;
-                        } else {
+                        // Skip the first occurrence of plateNumber and process only the second
+                        plateNumberOccurrence += 1;
+                        if (plateNumberOccurrence === 2) {
                             plateNumber = parseInt(value);
                         }
                         break;
