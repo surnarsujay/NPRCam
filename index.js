@@ -1,4 +1,4 @@
-require('dotenv').config();
+
 const http = require('http');
 const sax = require('sax');
 const { Buffer } = require('buffer');
@@ -7,15 +7,15 @@ const Tesseract = require('tesseract.js');
 const sql = require('mssql');
 
 // Define the IP camera server address and port
-const SERVER_ADDRESS = process.env.SERVER_ADDRESS;
-const SERVER_PORT = process.env.NPR_SERVER_PORT;
+const SERVER_ADDRESS = "146.88.24.73";
+const SERVER_PORT = 3000;
 
 // MSSQL connection configuration
 const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
-    database: process.env.DB_DATABASE,
+    user: 'MplusCam',
+    password: 'pv973$8eO',
+    server: '146.88.24.73',
+    database: 'lissomMplusCam',
     options: {
         encrypt: true,
         trustServerCertificate: true, // Temporary setting for diagnosis
@@ -24,8 +24,6 @@ const dbConfig = {
         }
     },
 };
-
-// The rest of your code remains the same...
 
 // Define the tags to capture
 const tagsToCapture = ['plateNumber', 'targetBase64Data'];
