@@ -21,12 +21,7 @@ const sqlConfig = {
     },
 };
 
-// Function to format the current system datetime for SQL Server
-function formatSystemDateTimeForSqlServer() {
-    const currentDate = new Date();
-    const formattedDateTime = currentDate.toISOString().replace('T', ' ').replace('Z', '');
-    return formattedDateTime;
-}
+
 
 // Define the tags to capture
 const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber'];
@@ -41,10 +36,10 @@ const server = http.createServer((req, res) => {
         let insideConfigTag = false;
         let tag = ''; // Current tag name
         let value = ''; // Current tag value
+        let firstPlateNumberEncountered = false; // Flag to track first occurrence of plateNumber
 
         // Variables to store extracted values
         let mac, sn, deviceName, plateNumber;
-    
 
         // Register event handlers for parsing
         parser.on('opentag', node => {
@@ -74,7 +69,12 @@ const server = http.createServer((req, res) => {
                         deviceName = value;
                         break;
                     case 'plateNumber':
-                        plateNumber = parseInt(value);
+                        // Skip the first occurrence of plateNumber
+                        if (!firstPlateNumberEncountered) {
+                            firstPlateNumberEncountered = true;
+                        } else {
+                            plateNumber = parseInt(value);
+                        }
                         break;
                 }
             }
@@ -116,14 +116,13 @@ async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
 
         // Define the query to insert data into the table
         const query = `
-        INSERT INTO MplusCam.CameraData (mac, currentTime, sn, deviceName, plateNumber)
+        INSERT INTO MplusCam.NPRData (mac, currentTime, sn, deviceName, plateNumber)
         VALUES (@mac, @currentTime, @sn, @deviceName, @plateNumber);
         `;
 
         // Execute the query
         const result = await request
             .input('mac', sql.VarChar, mac)
-            .input('currentTime', sql.DateTime, formatSystemDateTimeForSqlServer())
             .input('sn', sql.VarChar, sn || null) // Provide null if sn is not available
             .input('deviceName', sql.VarChar, deviceName || null) // Provide null if deviceName is not available
             .input('plateNumber', sql.Int, plateNumber || null) // Provide null if plateNumber is not available
