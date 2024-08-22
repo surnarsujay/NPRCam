@@ -116,8 +116,8 @@ async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
 
         // Define the query to insert data into the table
         const query = `
-        INSERT INTO MplusCam.NPRData (mac, currentTime, sn, deviceName, plateNumber)
-        VALUES (@mac, @currentTime, @sn, @deviceName, @plateNumber);
+        INSERT INTO MplusCam.NPRData (mac, sn, deviceName, plateNumber)
+        VALUES (@mac, @sn, @deviceName, @plateNumber);
         `;
 
         // Execute the query
