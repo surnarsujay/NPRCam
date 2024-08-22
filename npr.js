@@ -24,6 +24,9 @@ const sqlConfig = {
 // Define the tags to capture
 const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber'];
 
+// Variable to store the last inserted plateNumber
+let previousPlateNumber = null;
+
 // Create HTTP server
 const server = http.createServer((req, res) => {
     // Handle POST requests
@@ -106,11 +109,12 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, config
     console.log('deviceName:', deviceName);
     console.log('plateNumber:', plateNumber);
 
-    // Check if the plateNumber is exactly 10 characters long
-    if (plateNumber && plateNumber.length === 10) {
+    // Check if the plateNumber is exactly 10 characters long and is not a repeat of the previous one
+    if (plateNumber && plateNumber.length === 10 && plateNumber !== previousPlateNumber) {
         await insertIntoDatabase(mac, sn, deviceName, plateNumber, config);
+        previousPlateNumber = plateNumber; // Update the previousPlateNumber to the current one
     } else {
-        console.log('plateNumber is either empty or does not meet the 10-character requirement, skipping database insert.');
+        console.log('plateNumber is either invalid or a duplicate of the previous one, skipping database insert.');
     }
 }
 
