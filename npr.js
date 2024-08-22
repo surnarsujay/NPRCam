@@ -106,10 +106,11 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, config
     console.log('deviceName:', deviceName);
     console.log('plateNumber:', plateNumber);
 
-    if (plateNumber && plateNumber !== '') {
+    // Check if the plateNumber is exactly 10 characters long
+    if (plateNumber && plateNumber.length === 10) {
         await insertIntoDatabase(mac, sn, deviceName, plateNumber, config);
     } else {
-        console.log('plateNumber is empty, skipping database insert.');
+        console.log('plateNumber is either empty or does not meet the 10-character requirement, skipping database insert.');
     }
 }
 
