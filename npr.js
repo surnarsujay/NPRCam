@@ -59,14 +59,9 @@ const server = http.createServer((req, res) => {
                     base64Data = value; // Store Base64 data
                     base64DataProcessed = true; // Set flag to true after processing first occurrence
                 } else if (tagName === 'plateNumber' && !plateNumberLogged) {
-                    // Validate and log plateNumber
-                    if (isValidPlateNumber(value)) {
-                        plateNumber = value; // Store the plate number
-                        console.log(`plateNumber: ${plateNumber}`);
-                    } else {
-                        plateNumber = "invalid";
-                        console.log('Invalid plate');
-                    }
+                    // Log plateNumber as is
+                    plateNumber = value; // Store the plate number
+                    console.log(`plateNumber: ${plateNumber}`);
                     plateNumberLogged = true; // Ensure only the first plateNumber is logged
                 }
             }
@@ -173,12 +168,6 @@ function extractKeyValuePairs(text) {
     }
 
     return keyValuePairs;
-}
-
-// Function to validate plateNumber
-function isValidPlateNumber(plateNumber) {
-    const plateNumberPattern = /^(?=(?:[^A-Z]*[A-Z]){4})(?=(?:[^0-9]*[0-9]){6})[A-Z0-9]{10}$/;
-    return plateNumberPattern.test(plateNumber);
 }
 
 // Start the server
