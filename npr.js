@@ -1,17 +1,19 @@
+require('dotenv').config();
 const http = require('http');
 const sax = require('sax');
 const sql = require('mssql');
 
 // Define the IP camera server address and port
-const SERVER_ADDRESS = "0.0.0.0";
-const SERVER_PORT = 3065;
+const SERVER_ADDRESS = process.env.SERVER_ADDRESS;
+const SERVER_PORT = process.env.NPR_SERVER_PORT;
+
 
 // Define the database configuration
 const sqlConfig = {
-    user: 'lissom_pms',
-    password: 'f%80rZh26',
-    server: '146.88.24.73',
-    database: 'lissom_pms',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER,
+    database: process.env.DB_DATABASE,
     options: {
         encrypt: true,
         trustServerCertificate: true, // Temporary setting for diagnosis
