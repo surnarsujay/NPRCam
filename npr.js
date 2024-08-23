@@ -7,7 +7,7 @@ const SERVER_ADDRESS = "0.0.0.0";
 const SERVER_PORT = 3065;
 
 // MSSQL connection configuration
-const dbConfig = {
+const sqlConfig = {
     user: 'MplusCam',
     password: 'pv973$8eO',
     server: '146.88.24.73',
