@@ -22,7 +22,7 @@ const sqlConfig = {
 };
 
 // Define the tags to capture
-const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber'];
+const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber', 'targetType'];
 
 // Variable to store the last inserted plateNumber
 let previousPlateNumber = null;
@@ -38,9 +38,10 @@ const server = http.createServer((req, res) => {
         let tag = ''; // Current tag name
         let value = ''; // Current tag value
         let plateNumberOccurrence = 0; // Counter for occurrences of plateNumber
+        let targetTypeOccurrence = 0; // Counter for occurrences of targetType
 
         // Variables to store extracted values
-        let mac, sn, deviceName, plateNumber;
+        let mac, sn, deviceName, plateNumber, targetType;
 
         // Register event handlers for parsing
         parser.on('opentag', node => {
@@ -56,7 +57,7 @@ const server = http.createServer((req, res) => {
             if (tagName === 'config') {
                 insideConfigTag = false;
                 // Insert data into MSSQL database
-                logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, sqlConfig);
+                logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, sqlConfig);
             } else if (insideConfigTag && tagsToCapture.includes(tagName)) {
                 switch (tagName) {
                     case 'mac':
@@ -72,6 +73,14 @@ const server = http.createServer((req, res) => {
                         plateNumberOccurrence += 1;
                         if (plateNumberOccurrence === 2) {
                             plateNumber = value.trim(); // Use the second occurrence
+                        }
+                        break;
+                    case 'targetType':
+                        if (value.trim()) { // Check if targetType has some data
+                            targetTypeOccurrence += 1;
+                            if (targetTypeOccurrence === 2) {
+                                targetType = value.trim(); // Use the second occurrence with data
+                            }
                         }
                         break;
                 }
@@ -103,15 +112,16 @@ const server = http.createServer((req, res) => {
 });
 
 // Log values and then insert into the database
-async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
+async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, config) {
     console.log('mac:', mac);
     console.log('sn:', sn);
     console.log('deviceName:', deviceName);
     console.log('plateNumber:', plateNumber);
+    console.log('targetType:', targetType);
 
     // Check if the plateNumber is exactly 10 characters long and is not a repeat of the previous one
     if (plateNumber && plateNumber.length === 10 && plateNumber !== previousPlateNumber) {
-        await insertIntoDatabase(mac, sn, deviceName, plateNumber, config);
+        await insertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, config);
         previousPlateNumber = plateNumber; // Update the previousPlateNumber to the current one
     } else {
         console.log('plateNumber is either invalid or a duplicate of the previous one, skipping database insert.');
@@ -119,7 +129,7 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, config
 }
 
 // Function to insert data into MSSQL database
-async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
+async function insertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, config) {
     let pool;
     try {
         // Connect to the database
@@ -130,8 +140,8 @@ async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
 
         // Define the query to insert data into the table
         const query = `
-        INSERT INTO MplusCam.NPRData (mac, sn, deviceName, plateNumber)
-        VALUES (@mac, @sn, @deviceName, @plateNumber);
+        INSERT INTO MplusCam.NPRData (mac, sn, deviceName, plateNumber, targetType)
+        VALUES (@mac, @sn, @deviceName, @plateNumber, @targetType);
         `;
 
         // Execute the query
@@ -140,6 +150,7 @@ async function insertIntoDatabase(mac, sn, deviceName, plateNumber, config) {
             .input('sn', sql.VarChar, sn || null) // Provide null if sn is not available
             .input('deviceName', sql.VarChar, deviceName || null) // Provide null if deviceName is not available
             .input('plateNumber', sql.VarChar, plateNumber || null) // Provide null if plateNumber is not available
+            .input('targetType', sql.VarChar, targetType || null) // Provide null if targetType is not available
             .query(query);
 
         console.log('Data inserted successfully');
