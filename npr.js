@@ -119,8 +119,18 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, target
     console.log('plateNumber:', plateNumber);
     console.log('targetType:', targetType);
 
-    // Check if the plateNumber is exactly 10 characters long and is not a repeat of the previous one
-    if (plateNumber && plateNumber.length === 10 && plateNumber !== previousPlateNumber) {
+    // Define regular expressions for the plate number conditions
+    const plateFormat1_10 = /^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$/; // Format: 2 letters, 2 digits, 2 letters, 4 digits
+    const plateFormat2_10 = /^\d{2}[A-Z]{2}\d{4}[A-Z]{2}$/; // Format: 2 digits, 2 letters, 4 digits, 2 letters
+    const plateFormat1_9 = /^\d{2}[A-Z]{2}\d{4}[A-Z]$/;     // Format: 2 digits, 2 letters, 4 digits, 1 letter
+    const plateFormat2_9 = /^[A-Z]{2}\d{2}[A-Z]\d{4}$/;     // Format: 2 letters, 2 digits, 1 letter, 4 digits
+
+    // Check if the plateNumber matches any of the valid formats and is not a repeat of the previous one
+    if (plateNumber && (plateFormat1_10.test(plateNumber) || 
+                        plateFormat2_10.test(plateNumber) ||
+                        plateFormat1_9.test(plateNumber) ||
+                        plateFormat2_9.test(plateNumber)) &&
+                        plateNumber !== previousPlateNumber) {
         await insertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, config);
         previousPlateNumber = plateNumber; // Update the previousPlateNumber to the current one
     } else {
