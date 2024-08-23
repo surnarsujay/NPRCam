@@ -6,7 +6,7 @@ const sql = require('mssql');
 const SERVER_ADDRESS = "0.0.0.0";
 const SERVER_PORT = 3065;
 
-// MSSQL connection configuration
+// Define the database configuration
 const sqlConfig = {
     user: 'MplusCam',
     password: 'pv973$8eO',
