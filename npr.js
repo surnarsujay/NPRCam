@@ -150,7 +150,7 @@ async function insertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, 
 
         // Define the query to insert data into the table
         const query = `
-        INSERT INTO MplusCam.NPRData (mac, sn, deviceName, plateNumber, targetType)
+        INSERT INTO dbo.NPRData (mac, sn, deviceName, plateNumber, targetType)
         VALUES (@mac, @sn, @deviceName, @plateNumber, @targetType);
         `;
 
