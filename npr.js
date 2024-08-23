@@ -8,10 +8,10 @@ const SERVER_PORT = 3065;
 
 // Define the database configuration
 const sqlConfig = {
-    user: 'MplusCam',
-    password: 'pv973$8eO',
+    user: 'lissom_pms',
+    password: 'f%80rZh26',
     server: '146.88.24.73',
-    database: 'lissomMplusCam',
+    database: 'lissom_pms',
     options: {
         encrypt: true,
         trustServerCertificate: true, // Temporary setting for diagnosis
