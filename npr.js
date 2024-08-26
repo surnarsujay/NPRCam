@@ -7,7 +7,6 @@ const sql = require('mssql');
 const SERVER_ADDRESS = process.env.SERVER_ADDRESS;
 const SERVER_PORT = process.env.NPR_SERVER_PORT;
 
-
 // Define the database configuration
 const sqlConfig = {
     user: process.env.DB_USER,
@@ -26,8 +25,8 @@ const sqlConfig = {
 // Define the tags to capture
 const tagsToCapture = ['mac', 'sn', 'deviceName', 'plateNumber', 'targetType'];
 
-// Variable to store the last inserted plateNumber
-let previousPlateNumber = null;
+// Map to track the last 5 plate numbers for each `sn`
+const snPlateHistory = new Map();
 
 // Create HTTP server
 const server = http.createServer((req, res) => {
@@ -127,16 +126,39 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, target
     const plateFormat1_9 = /^\d{2}[A-Z]{2}\d{4}[A-Z]$/;     // Format: 2 digits, 2 letters, 4 digits, 1 letter
     const plateFormat2_9 = /^[A-Z]{2}\d{2}[A-Z]\d{4}$/;     // Format: 2 letters, 2 digits, 1 letter, 4 digits
 
-    // Check if the plateNumber matches any of the valid formats and is not a repeat of the previous one
-    if (plateNumber && (plateFormat1_10.test(plateNumber) || 
-                        plateFormat2_10.test(plateNumber) ||
-                        plateFormat1_9.test(plateNumber) ||
-                        plateFormat2_9.test(plateNumber)) &&
-                        plateNumber !== previousPlateNumber) {
+    // Check if the plateNumber is valid and hasn't been inserted for the same `sn` in the last 5 entries
+    if (plateNumber && 
+        (plateFormat1_10.test(plateNumber) || 
+         plateFormat2_10.test(plateNumber) ||
+         plateFormat1_9.test(plateNumber) ||
+         plateFormat2_9.test(plateNumber))) {
+
+        // Check the history of the plate numbers for the same `sn`
+        const plateHistory = snPlateHistory.get(sn) || [];
+
+        // If plateNumber is in the last 5 entries for this `sn`, skip insertion
+        if (plateHistory.includes(plateNumber)) {
+            console.log(`plateNumber ${plateNumber} already inserted for sn ${sn} in the last 5 entries, skipping database insert.`);
+            return;
+        }
+
+        // Also check if the plateNumber exists in the last 5 entries of other `sn`
+        for (const [otherSn, otherPlateHistory] of snPlateHistory.entries()) {
+            if (otherSn !== sn && otherPlateHistory.includes(plateNumber)) {
+                console.log(`plateNumber ${plateNumber} exists in the last 5 entries for a different sn, skipping database insert.`);
+                return;
+            }
+        }
+
+        // If the checks pass, insert into the database
         await insertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, config);
-        previousPlateNumber = plateNumber; // Update the previousPlateNumber to the current one
+
+        // Update the history for this `sn`
+        plateHistory.push(plateNumber);
+        if (plateHistory.length > 5) plateHistory.shift(); // Keep only the last 5 entries
+        snPlateHistory.set(sn, plateHistory);
     } else {
-        console.log('plateNumber is either invalid or a duplicate of the previous one, skipping database insert.');
+        console.log('plateNumber is either invalid or skipped due to the conditions.');
     }
 }
 
