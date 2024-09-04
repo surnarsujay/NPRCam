@@ -155,7 +155,7 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, target
 
         // Update the history for this `sn`
         plateHistory.push(plateNumber);
-        if (plateHistory.length > 5) plateHistory.shift(); // Keep only the last 5 entries
+        if (plateHistory.length > 3) plateHistory.shift(); // Keep only the last 5 entries
         snPlateHistory.set(sn, plateHistory);
     } else {
         console.log('plateNumber is either invalid or skipped due to the conditions.');
