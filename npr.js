@@ -127,6 +127,7 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, target
     const plateFormat2_9 = /^[A-Z]{2}\d{2}[A-Z]\d{4}$/;     // Format: 2 letters, 2 digits, 1 letter, 4 digits
     const plateFormat2L1D2L4D = /^[A-Z]{2}\d[A-Z]{2}\d{4}$/; // Format: 2 letters, 1 digit, 2 letters, 4 digits
     const plateFormat2L1D1L4D = /^[A-Z]{2}\d[A-Z]\d{4}$/;    // Format: 2 letters, 1 digit, 1 letter, 4 digits
+    const plateFormat2L1D3L4D = /^[A-Z]{2}\d[A-Z]{3}\d{4}$/; // Format: 2 letters, 1 digit, 3 letters, 4 digits
 
     // Check if the plateNumber is valid and hasn't been inserted for the same `sn` in the last 5 entries
     if (plateNumber && 
@@ -135,7 +136,8 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, target
          plateFormat1_9.test(plateNumber) ||
          plateFormat2_9.test(plateNumber) ||
          plateFormat2L1D2L4D.test(plateNumber) ||
-         plateFormat2L1D1L4D.test(plateNumber))) {
+         plateFormat2L1D1L4D.test(plateNumber) ||
+         plateFormat2L1D3L4D.test(plateNumber))) {
 
         // Check the history of the plate numbers for the same `sn`
         const plateHistory = snPlateHistory.get(sn) || [];
@@ -165,6 +167,7 @@ async function logAndInsertIntoDatabase(mac, sn, deviceName, plateNumber, target
         console.log('plateNumber is either invalid or skipped due to the conditions.');
     }
 }
+
 
 // Function to insert data into MSSQL database
 async function insertIntoDatabase(mac, sn, deviceName, plateNumber, targetType, config) {
